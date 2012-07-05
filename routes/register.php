@@ -1,8 +1,9 @@
 <?php 
 
+require_once(dirname(__FILE__)."/../lib/recaptchalib.php");
 $err = array();
 					 
-if(p('doRegister')== 'Register') 
+if(W::p('doRegister')== 'Register') 
 { 
   /******************* Filtering/Sanitizing Input *****************************
   This code filters harmful script code and escapes data of all POST data
@@ -150,7 +151,7 @@ if(p('doRegister')== 'Register')
         <table width="95%" border="0" cellpadding="3" cellspacing="3" class="forms">
           <tr> 
             <td>Username<span class="required"><font color="#CC0000">*</font></span></td>
-            <td><input name="user_name" type="text" id="user_name" class="required username" minlength="5" value="<?=p('user_name')?>" > 
+            <td><input name="user_name" type="text" id="user_name" class="required username" minlength="5" value="<?=W::p('user_name')?>" > 
               <input name="btnAvailable" type="button" id="btnAvailable"			  value="Check Availability"> 
               <script>
                 $(function() {
@@ -180,19 +181,19 @@ if(p('doRegister')== 'Register')
           <tr> 
             <td>Your Email<span class="required"><font color="#CC0000">*</font></span> 
             </td>
-            <td><input name="usr_email" type="text" id="usr_email3" class="required email" value="<?=p('usr_email')?>"> 
+            <td><input name="usr_email" type="text" id="usr_email3" class="required email" value="<?=W::p('usr_email')?>"> 
               <span class="example">** Valid email please..</span></td>
           </tr>
           <tr> 
             <td>Password<span class="required"><font color="#CC0000">*</font></span> 
             </td>
-            <td><input name="pwd" type="password" class="required password" minlength="5" id="pwd"  value="<?=p('pwd')?>"> 
+            <td><input name="pwd" type="password" class="required password" minlength="5" id="pwd"  value="<?=W::p('pwd')?>"> 
               <span class="example">** 5 chars minimum..</span></td>
           </tr>
           <tr> 
             <td>Retype Password<span class="required"><font color="#CC0000">*</font></span> 
             </td>
-            <td><input name="pwd2"  id="pwd2" class="required password" type="password" minlength="5" equalto="#pwd"  value="<?=p('pwd2')?>"></td>
+            <td><input name="pwd2"  id="pwd2" class="required password" type="password" minlength="5" equalto="#pwd"  value="<?=W::p('pwd2')?>"></td>
           </tr>
           <tr> 
             <td colspan="2">&nbsp;</td>

@@ -2,16 +2,16 @@
 
 
 /******************* ACTIVATION BY FORM**************************/
-if (p('doReset')=='Reset')
+if (W::p('doReset')=='Reset')
 {
   $err = array();
   $msg = array();
   
-  if(!isEmail(p('user_email'))) {
+  if(!isEmail(W::p('user_email'))) {
     $err[] = "ERROR - Please enter a valid email"; 
   }
   
-  $user = event('find_login', null, p('user_email'));
+  $user = event('find_login', null, W::p('user_email'));
   
   if ( !$user ) { 
     $err[] = "Error - Sorry no such account exists or registered.";

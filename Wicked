@@ -1,14 +1,20 @@
 <?
 
-define ("ADMIN_LEVEL", 5);
-define ("USER_LEVEL", 1);
-define ("GUEST_LEVEL", 0);
-define("COOKIE_TIME_OUT", 10); //specify cookie timeout in days (default is 10 days)
-define('SALT_LENGTH', 9); // salt for password
-
-
 $config = array(
-  'requires'=>array('swiftmail', 'eval_php', 'db', 'activerecord', 'observer', 'meta', 'template', 'string', 'sc','date', 'simple_routing'),
+  'requires'=>array(
+    'swiftmail', 
+    'php_sandbox', 
+    'db', 
+    'activerecord', 
+    'meta', 
+    'template', 
+    'string', 
+    'date', 
+    'cookie_session', 
+    'haml',
+    'class_lazyloader', 
+    'request',
+  ),
   'after_activation_url'=>'/',
   'after_login_url'=>'/',
   'recaptcha'=>array(

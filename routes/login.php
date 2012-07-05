@@ -3,26 +3,26 @@
 $err = array();
 
 foreach($_GET as $key => $value) {
-	$get[$key] = filter($value); //get variables are filtered.
+	$get[$key] = $value;
 }
 
-if (p('doLogin')=='Login')
+if (W::p('doLogin')=='Login')
 {
 
   foreach($_POST as $key => $value) {
-    $data[$key] = filter($value); // post variables are filtered
+    $data[$key] = $value;
   }
   
   
   $user_email = $data['usr_email'];
   $pass = $data['pwd'];
   
-  $user = event('find_login', null, $user_email);
+  $user = W::filter('find_login', null, $user_email);
 
   // Match row found with more than 1 results  - the user is authenticated. 
   if ( $user ) 
   { 
-  	if(!$user->is_activated) 
+  	if(!$user->is_active) 
   	{
   	 $s = "Account not activated. Please check your email for activation code. ";
   	 $s .= "<a href='{$user->activation_check_url}'>Resend</a>";
@@ -30,7 +30,7 @@ if (p('doLogin')=='Login')
     } else {
       if ($user->password === PwdHash($pass,$user->salt))
       { 
-        login($user, p('r',$config['after_login_url']));
+        login($user, W::p('r',$config['after_login_url']));
       } else {
       	$err[] = "Invalid Login. Please try again with correct user email and password.";
       }
