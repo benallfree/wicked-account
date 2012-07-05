@@ -1,0 +1,42 @@
+:php
+  if(is_postback())
+  {
+    if(p('password[new]')==p('password[confirm]'))
+    {
+      $current_user->password = PwdHash(p('password[new]', $current_user->salt));
+      $current_user->save();
+      flash_next('Password changed.');
+      redirect_to('/account');
+    } else {
+      flash('Passwords do not match. Try again.');
+    }
+    
+  }
+%h1 My Account
+
+%h2 Basic Information
+%table
+  %tr
+    %th Login
+    %td +$current_user->login
+  %tr
+    %th Email
+    %td +$current_user->email
+  %tr
+    %th Created
+    %td =wicked_date_format($current_user->created_at)
+
+%h2 Password
+=form_tag()
+  %table
+    %tr
+      %th New Password
+      %td =password_tag('password[new]', p('password[new]'))
+    %tr
+      %th Confirm Password
+      %td =password_tag('password[confirm]')
+    %tr
+      %th
+      %td
+        .button Change
+=end_form_tag()

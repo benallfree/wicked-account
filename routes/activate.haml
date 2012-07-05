@@ -1,0 +1,28 @@
+:php
+  $user = p('user');
+  $code = p('activ_code');
+  
+  $u = User::find(array(
+    'conditions'=>array('md5_id = ? and activation_code = ?', $user, $code),
+  ));
+  
+  if($u)
+  {
+    $u->is_activated = 1;
+    $u->save();
+    flash_next("Thank you. Your account has been activated.");
+    
+    list($subject,$body) = template('account.welcome');
+    swiftmail($u->email, $subject, $body, true);
+    
+    
+    event('account_activated', $u);
+    login($u);
+    redirect_to($config['after_activation_url']);
+  }
+%h1 Invalid Activation Link
+%p The activation link you provided was invalid. Please try again.
+%p
+  Still having trouble? Use the
+  %a{:href=>"/account/forgot"} forgot password
+  feature.

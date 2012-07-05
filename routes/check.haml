@@ -1,0 +1,25 @@
+:php
+  $host  = $_SERVER['HTTP_HOST'];
+  $path   = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+  $u = User::find_by_email(p('u'));
+  $a_link = "http://$host$path/account/activate?user={$u->md5_id}&activ_code={$u->activation_code}"; 
+  
+  list($subject,$body) = template('account.register', array('a_link'=>$a_link));
+  
+  swiftmail($u->email, $subject, $body, true);
+  flash("Your activation email has been sent. Please check your inbox.");
+
+%h1 Confirm Your Account
+%p
+  An activation email has been sent to <b><?=h($u->email)?></b>.
+%p
+  Please check your inbox for an email containing an activation link to confirm
+  your account registration.
+%p
+  If you do not receive the email, check your bulk mail folder and set up a mail
+  rule so you receive future messages from us reliably.
+%h2
+  Still can't find the activation email?
+.button.large{:href=>$_SERVER['REQUEST_URI']}
+  Resend Activation Email to
+  +$u->email

@@ -1,0 +1,14 @@
+:php
+  if(p('c'))
+  {
+    $current_user->is_active = false;
+    $current_user->save();
+    flash_next("Your account has been deactivated.");
+    logout();
+  }
+%h1 Delete Your Account
+%p We're sorry to see you go. You can delete your account using the link below.
+%p
+  %b Please note, we may remove any information associated with your account after you delete your account.
+%p If you wish to un-delete your account, simply log in again and your access will be restored.
+.button.large{:href=>'?c=1'} Delete Account Now
