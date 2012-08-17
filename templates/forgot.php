@@ -1,5 +1,5 @@
-So you forgot your password, huh?
+We have received a request to reset your password. If you did not initiate this request, you may ignore this message.
 
-Okay, here's your password reset link:
+To reset your password, follow this link:
 
 <?=$reset_link?> 

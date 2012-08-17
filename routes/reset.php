@@ -1,5 +1,6 @@
 <?php 
 
+require(dirname(__FILE__)."/../lib/util.php");
 
 /******************* ACTIVATION BY FORM**************************/
 if (W::p('doReset')=='Reset')
@@ -11,25 +12,13 @@ if (W::p('doReset')=='Reset')
     $err[] = "ERROR - Please enter a valid email"; 
   }
   
-  $user = event('find_login', null, W::p('user_email'));
+  $user = W::filter('find_login', null, W::p('user_email'));
   
   if ( !$user ) { 
     $err[] = "Error - Sorry no such account exists or registered.";
   } else {
-    $activ_code = rand(1000,9999);
-    $user->activation_code = $activ_code;
-    $user->save();
-    
-    $host  = $_SERVER['HTTP_HOST'];
-    $path   = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
-    $reset_link = create_secure_callback_url('reset_user', $user->id);
-    $reset_link = "http://{$host}{$path}{$reset_link}";
-
-    list($subject,$body) = template('account.forgot', array('reset_link'=>$reset_link));
-    swiftmail($user->email, $subject, $body);
-    
-
-    flash_next("Your password reset link has been sent. Please check your email (and bulk mail).");
+    $user->send_password_reset();
+    W::flash_next("Your password reset link has been sent. Please check your email (and bulk mail).");
     
     header("Location: /");  
     exit();
@@ -52,7 +41,7 @@ if (W::p('doReset')=='Reset')
       <p>&nbsp;</p>
       <p>&nbsp;</p></td>
     <td width="732" valign="top">
-<h3 class="titlehdr">Forgot Password</h3>
+<h3 class="titlehdr">Reset Password</h3>
 
       <p> 
         <?php
@@ -75,7 +64,7 @@ if (W::p('doReset')=='Reset')
       </p>
       <p>Give us the email address you used when you signed up and we'll send you a password reset link.</p>
 	 
-      <form action="forgot" method="post" name="actForm" id="actForm" >
+      <form action="reset" method="post" name="actForm" id="actForm" >
         <table width="65%" border="0" cellpadding="4" cellspacing="4" class="loginform">
           <tr> 
             <td colspan="2">&nbsp;</td>

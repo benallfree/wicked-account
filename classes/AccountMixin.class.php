@@ -101,4 +101,32 @@ class AccountMixin extends Mixin
     $user = mysql_fetch_assoc($result);  
     return $user;
   }
+  
+  static function reset($id)
+  {
+    $user = User::find_by_id($id);
+  
+    if ( !$user ) { 
+    	W::flash_next("Sorry no such account exists or reset code is invalid.");
+    	W::redirect_to('/');
+    } else {
+      self::login($user, '/account');
+    }
+  }
+
+  function activate($id)
+  {
+    $u = User::find_by_id($id);
+    $u->activated_at = time();
+    $u->save();
+    W::flash_next("Thank you. Your account has been activated.");
+    
+    list($subject,$body) = template('account.welcome');
+    W::swiftmail($u->email, $subject, $body, true);
+    
+    W::action('account_activated', $u);
+    self::login($u);
+    W::redirect_to(W::filter('after_activation_url', $config['after_activation_url'], $u));
+  }
+  
 }

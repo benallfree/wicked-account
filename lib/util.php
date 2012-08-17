@@ -1,6 +1,6 @@
 <?
 function filter($data) {
-	$data = trim(h(strip_tags($data)));
+	$data = trim(W::h(strip_tags($data)));
 
 	if (get_magic_quotes_gpc())
 		$data = stripslashes($data);
@@ -132,15 +132,4 @@ function checkAdmin() {
 
 }
 
-function reset_user($id)
-{
-  $user = User::find_by_id($id);
-
-  if ( !$user ) { 
-  	flash_next("Sorry no such account exists or reset code is invalid.");
-  	redirect_to('/');
-  } else {
-    login($user, '/account');
-  }
-}
 

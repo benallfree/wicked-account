@@ -16,7 +16,7 @@
     swiftmail($u->email, $subject, $body, true);
     
     
-    event('account_activated', $u);
+    do_action('account_activated', $u);
     login($u);
     redirect_to($config['after_activation_url']);
   }

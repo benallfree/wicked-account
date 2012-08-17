@@ -1,0 +1,23 @@
+:php
+  $users = User::find_all(array(
+    'order'=>'login',
+  ));
+  
+  $meta = array(
+    'klass'=>'User',
+    'list'=>array('login', 'email', 'is_activated', 'is_active', 'is_banned', 'role',),
+    'edit'=>array(
+      'basic'=>array(
+        'login',
+        'email',
+        'role_id',
+        'is_activated',
+        'is_active',
+        'is_banned',
+      ),
+    ),
+    'objects='=>$users,
+    'new_breadcrumb'=>true,
+  );
+%h1 Manage Users
+=superlist($meta);

@@ -16,7 +16,8 @@ if(W::p('doRegister')== 'Register')
   /********************* RECAPTCHA CHECK *******************************
   This code checks and validates recaptcha
   ****************************************************************/
-       
+  if($config['recaptcha']['public_key'])
+  {
         $resp = recaptcha_check_answer ($config['recaptcha']['private_key'],
                                         $_SERVER["REMOTE_ADDR"],
                                         $_POST["recaptcha_challenge_field"],
@@ -25,6 +26,7 @@ if(W::p('doRegister')== 'Register')
         if (!$resp->is_valid) {
           $err[] = "Image Verification failed.";			
         }
+  }       
   /************************ SERVER SIDE VALIDATION **************************************/
   /********** This validation is useful if javascript is disabled in the browswer ***/
   
@@ -51,8 +53,12 @@ if(W::p('doRegister')== 'Register')
   	  
   $user_ip = $_SERVER['REMOTE_ADDR'];
   
+  $usr_email = $data['usr_email'];
+  $user_name = $data['user_name'];
+  
   // stores sha1 of password
-  $sha1pass = PwdHash($data['pwd']);
+  $salt = md5($user_name.uniqid().microtime(true));
+  $sha1pass = PwdHash($data['pwd'], $salt);
   
   // Automatically collects the hostname or domain  like example.com) 
   $host  = $_SERVER['HTTP_HOST'];
@@ -62,20 +68,18 @@ if(W::p('doRegister')== 'Register')
   // Generates activation code simple 4 digit number
   $activ_code = rand(1000,9999);
   
-  $usr_email = $data['usr_email'];
-  $user_name = $data['user_name'];
   
   /************ USER EMAIL CHECK ************************************
   This code does a second check on the server side if the email already exists. It 
   queries the database and if it has any existing email it throws user email already exists
   *******************************************************************/
   
-  $rs_duplicate = mysql_query("select count(*) as total from users where email='$usr_email' OR login='$user_name'") or die(mysql_error());
+  $rs_duplicate = mysql_query("select count(*) as total from users where login='$user_name'") or die(mysql_error());
   list($total) = mysql_fetch_row($rs_duplicate);
   
   if ($total > 0)
   {
-    $err[] = "ERROR - The username/email already exists. Please try again with different username and email or use the reset password feature.";
+    $err[] = "ERROR - The username already exists. Please try again with different username or use the reset password feature.";
   }
   
   if(empty($err))
@@ -84,17 +88,16 @@ if(W::p('doRegister')== 'Register')
     $u = User::create( array(
       'attributes'=>array(
         'email'=>$usr_email,
-        'pwd'=>$sha1pass,
-        'date'=>time(),
+        'password'=>$sha1pass,
         'users_ip'=>$user_ip,
         'activation_code'=>$activ_code,
         'login'=>$user_name,
-        'md5_id'=>md5($user_name.$sha1pass.microtime(true)),
+        'salt'=>$salt,
       ),
     ));
     
     flash("Please check your email.");
-    redirect_to('/account/check?u='.$usr_email);
+    redirect_to('/account/check', array('u'=>$user_name, 'e'=>$usr_email));
   }					 
 }
 
@@ -107,11 +110,7 @@ if(W::p('doRegister')== 'Register')
         return this.optional(element) || /^[a-z0-9\_]+$/i.test(value);
     }, "Username must contain only letters, numbers, or underscore.");
 
-    $("#regForm").validate(
-      {
-        wrapper: 'div',
-      }
-    );
+    $("#regForm").validate();
   });
   </script>
 <table width="100%" border="0" cellspacing="0" cellpadding="5" class="main">
@@ -132,10 +131,7 @@ if(W::p('doRegister')== 'Register')
 	  }
 	?></p>
       <h3 class="titlehdr">Free Registration / Signup</h3>
-      <p>Lessons require a webcam, microphone, and Skype. When you sign up, you'll receive 2 free lessons and 1 lesson per week.
-      <p>
-        Registration is quick and free! Please note that fields marked <span class="required">*</span> 
-        are required.</p>
+      <?=W::filter('se', "Registration is quick and free! Please note that fields marked <span class='required'>*</span> are required.")?>
 	 <?php	
 	 if(!empty($err))  {
 	   echo "<div class=\"msg\"><ul>";
@@ -174,8 +170,7 @@ if(W::p('doRegister')== 'Register')
                   });
                 });
               </script>
-			         <br/>
-			         <span style="color:red; font: bold 12px verdana; " id="checkid" ></span> 
+			    <span style="color:red; font: bold 12px verdana; " id="checkid" ></span> 
             </td>
           </tr>
           <tr> 
@@ -198,14 +193,16 @@ if(W::p('doRegister')== 'Register')
           <tr> 
             <td colspan="2">&nbsp;</td>
           </tr>
-          <tr> 
-            <td width="22%"><strong>Image Verification </strong></td>
-            <td width="78%"> 
-              <?php 
-				echo recaptcha_get_html($config['recaptcha']['public_key']);
-			?>
-            </td>
-          </tr>
+          <? if($config['recaptcha']['public_key']): ?>
+            <tr> 
+              <td width="22%"><strong>Image Verification </strong></td>
+              <td width="78%"> 
+                <?php 
+  				echo recaptcha_get_html($config['recaptcha']['public_key']);
+  			?>
+              </td>
+            </tr>
+          <? endif; ?>
         </table>
         <p align="center">
           <input name="doRegister" type="submit" id="doRegister" value="Register">

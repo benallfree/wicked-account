@@ -1,16 +1,18 @@
 <?php 
 
+
+require(dirname(__FILE__)."/../lib/util.php");
 $err = array();
 
 foreach($_GET as $key => $value) {
-	$get[$key] = $value;
+	$get[$key] = filter($value); //get variables are filtered.
 }
 
 if (W::p('doLogin')=='Login')
 {
 
   foreach($_POST as $key => $value) {
-    $data[$key] = $value;
+    $data[$key] = filter($value); // post variables are filtered
   }
   
   
@@ -22,7 +24,7 @@ if (W::p('doLogin')=='Login')
   // Match row found with more than 1 results  - the user is authenticated. 
   if ( $user ) 
   { 
-  	if(!$user->is_active) 
+  	if(!$user->is_activated) 
   	{
   	 $s = "Account not activated. Please check your email for activation code. ";
   	 $s .= "<a href='{$user->activation_check_url}'>Resend</a>";
@@ -32,7 +34,7 @@ if (W::p('doLogin')=='Login')
       { 
         login($user, W::p('r',$config['after_login_url']));
       } else {
-      	$err[] = "Invalid Login. Please try again with correct user email and password.";
+      	$err[] = "Your password is incorrect. Please try again or use Forgot Password.";
       }
     } 
   } else {
@@ -102,7 +104,7 @@ if (W::p('doLogin')=='Login')
                   <? if($config['should_allow_open_registration']): ?>
                   <a href="register">Register Free</a><font color="#FF6600"> | </font> 
                   <? endif; ?>
-                  <a href="forgot">Forgot Password</a> <font color="#FF6600"> 
+                  <a href="reset">Reset Password</a> <font color="#FF6600"> 
                   </font></p>
               </div></td>
           </tr>
