@@ -8,7 +8,7 @@ if (W::p('doReset')=='Reset')
   $err = array();
   $msg = array();
   
-  if(!isEmail(W::p('user_email'))) {
+  if(!W::user_isEmail(W::p('user_email'))) {
     $err[] = "ERROR - Please enter a valid email"; 
   }
   

@@ -1,7 +1,7 @@
 <?php
 
 foreach($_GET as $key => $value) {
-	$get[$key] = filter($value);
+	$get[$key] = W::filter($value);
 }
 
 $user = mysql_real_escape_string($get['user']);

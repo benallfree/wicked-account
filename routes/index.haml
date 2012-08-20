@@ -1,14 +1,14 @@
 :php
-  if(is_postback())
+  $current_user = W::user_current();
+  if(W::is_postback())
   {
-    if(p('password[new]')==p('password[confirm]'))
+    if(W::p('password[new]')==W::p('password[confirm]'))
     {
-      $current_user->password = PwdHash(p('password[new]', $current_user->salt));
-      $current_user->save();
-      flash_next('Password changed.');
-      redirect_to('/account');
+      $current_user->set_password(W::p('password[new]'));
+      W::flash_next('Password changed.');
+      W::redirect_to('/account');
     } else {
-      flash('Passwords do not match. Try again.');
+      W::flash('Passwords do not match. Try again.');
     }
     
   }
@@ -24,19 +24,19 @@
     %td +$current_user->email
   %tr
     %th Created
-    %td =wicked_date_format($current_user->created_at)
+    %td =W::date_format($current_user->created_at)
 
 %h2 Password
-=form_tag()
+=W::form_tag()
   %table
     %tr
       %th New Password
-      %td =password_tag('password[new]', p('password[new]'))
+      %td =W::password_tag('password[new]', W::p('password[new]'))
     %tr
       %th Confirm Password
-      %td =password_tag('password[confirm]')
+      %td =W::password_tag('password[confirm]')
     %tr
       %th
       %td
         .button Change
-=end_form_tag()
+=W::end_form_tag()

@@ -1,2 +1,2 @@
 <?php
-logout();
+W::user_logout();

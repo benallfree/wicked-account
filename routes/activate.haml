@@ -8,7 +8,8 @@
   
   if($u)
   {
-    $u->is_activated = 1;
+    $u->activated_at = time();
+    $u->is_active = true;
     $u->save();
     flash_next("Thank you. Your account has been activated.");
     

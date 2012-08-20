@@ -1,5 +1,5 @@
 -if(W::user_is_logged_in())
-  Welcome, <?=$current_user->login?>.
+  Welcome, <?=W::user_current()->login?>.
   <a href='/account'>My Account</a>
   <a href='/account/logout'>Logout</a>
 -else

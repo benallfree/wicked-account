@@ -17,6 +17,7 @@ $config = array(
     'sc',
     'superlist',
     'presentation',
+    'cookie_session',
   ),
   'after_activation_url'=>'/',
   'after_login_url'=>'/',
@@ -29,4 +30,6 @@ $config = array(
     'find_login',
     'add_globals',
   ),
+  'ttl'=>60*30, // 30 minutes
+  'remember_ttl'=>60*60*24*365, // one year
 );

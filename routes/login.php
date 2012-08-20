@@ -5,14 +5,14 @@ require(dirname(__FILE__)."/../lib/util.php");
 $err = array();
 
 foreach($_GET as $key => $value) {
-	$get[$key] = filter($value); //get variables are filtered.
+	$get[$key] = W::user_filter($value); //get variables are filtered.
 }
 
 if (W::p('doLogin')=='Login')
 {
 
   foreach($_POST as $key => $value) {
-    $data[$key] = filter($value); // post variables are filtered
+    $data[$key] = W::user_filter($value); // post variables are filtered
   }
   
   
@@ -30,9 +30,9 @@ if (W::p('doLogin')=='Login')
   	 $s .= "<a href='{$user->activation_check_url}'>Resend</a>";
     	$err[] = $s;
     } else {
-      if ($user->password === PwdHash($pass,$user->salt))
+      if ($user->is_password($pass))
       { 
-        login($user, W::p('r',$config['after_login_url']));
+        W::user_login($user, W::p('r',$config['after_login_url']));
       } else {
       	$err[] = "Your password is incorrect. Please try again or use Forgot Password.";
       }

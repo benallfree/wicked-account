@@ -10,7 +10,7 @@ if(W::p('doRegister')== 'Register')
   from the user submitted form.
   *****************************************************************/
   foreach($_POST as $key => $value) {
-  	$data[$key] = filter($value);
+  	$data[$key] = W::user_filter($value);
   }
   
   /********************* RECAPTCHA CHECK *******************************
@@ -27,53 +27,23 @@ if(W::p('doRegister')== 'Register')
           $err[] = "Image Verification failed.";			
         }
   }       
-  /************************ SERVER SIDE VALIDATION **************************************/
-  /********** This validation is useful if javascript is disabled in the browswer ***/
-  
   
   // Validate User Name
-  if (!isUserID($data['user_name'])) {
-  $err[] = "ERROR - Invalid user name. It can contain alphabet, number and underscore.";
-  //header("Location: register.php?msg=$err");
-  //exit();
+  if (!W::user_isUserID($data['user_name'])) {
+    $err[] = "ERROR - Invalid user name. It can contain alphabet, number and underscore.";
   }
   
   // Validate Email
-  if(!isEmail($data['usr_email'])) {
-  $err[] = "ERROR - Invalid email address.";
-  //header("Location: register.php?msg=$err");
-  //exit();
+  if(!W::user_isEmail($data['usr_email'])) {
+    $err[] = "ERROR - Invalid email address.";
   }
   // Check User Passwords
-  if (!checkPwd($data['pwd'],$data['pwd2'])) {
-  $err[] = "ERROR - Invalid Password or mismatch. Enter 5 chars or more";
-  //header("Location: register.php?msg=$err");
-  //exit();
+  if (!W::user_checkPwd($data['pwd'],$data['pwd2'])) {
+    $err[] = "ERROR - Invalid Password or mismatch. Enter 5 chars or more";
   }
   	  
-  $user_ip = $_SERVER['REMOTE_ADDR'];
-  
-  $usr_email = $data['usr_email'];
+  // Check for duplicate username
   $user_name = $data['user_name'];
-  
-  // stores sha1 of password
-  $salt = md5($user_name.uniqid().microtime(true));
-  $sha1pass = PwdHash($data['pwd'], $salt);
-  
-  // Automatically collects the hostname or domain  like example.com) 
-  $host  = $_SERVER['HTTP_HOST'];
-  $host_upper = strtoupper($host);
-  $path   = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
-  
-  // Generates activation code simple 4 digit number
-  $activ_code = rand(1000,9999);
-  
-  
-  /************ USER EMAIL CHECK ************************************
-  This code does a second check on the server side if the email already exists. It 
-  queries the database and if it has any existing email it throws user email already exists
-  *******************************************************************/
-  
   $rs_duplicate = mysql_query("select count(*) as total from users where login='$user_name'") or die(mysql_error());
   list($total) = mysql_fetch_row($rs_duplicate);
   
@@ -84,26 +54,36 @@ if(W::p('doRegister')== 'Register')
   
   if(empty($err))
   {
-  
-    $u = User::create( array(
+    $user_ip = $_SERVER['REMOTE_ADDR'];
+    
+    $usr_email = $data['usr_email'];
+    
+    // stores sha1 of password
+    $salt = md5($user_name.uniqid().microtime(true));
+    
+    $u = new User( array(
       'attributes'=>array(
-        'email'=>$usr_email,
-        'password'=>$sha1pass,
-        'users_ip'=>$user_ip,
-        'activation_code'=>$activ_code,
         'login'=>$user_name,
+        'email'=>$usr_email,
+        'users_ip'=>$user_ip,
         'salt'=>$salt,
       ),
     ));
+    $u->set_password($data['pwd']);
+    if($u->is_valid)
+    {
+      W::flash("Please check your email.");
+      W::redirect_to('/account/check', array('u'=>$user_name, 'e'=>$usr_email, '_r'=>microtime(true)));
+    } else {
+      $err = $u->errors;
+    }
     
-    flash("Please check your email.");
-    redirect_to('/account/check', array('u'=>$user_name, 'e'=>$usr_email));
   }					 
 }
 
 ?>
-  <script src="<?=$this_module_resource_vpath?>/assets/js/jquery.observe_field.js"></script>
-  <script src="<?=$this_module_resource_vpath?>/assets/js/jquery.validate.js"></script>
+  <script src="<?=$config['vpath']?>/assets/js/jquery.observe_field.js"></script>
+  <script src="<?=$config['vpath']?>/assets/js/jquery.validate.js"></script>
   <script>
   $(document).ready(function(){
     $.validator.addMethod("username", function(value, element) {
@@ -136,7 +116,7 @@ if(W::p('doRegister')== 'Register')
 	 if(!empty($err))  {
 	   echo "<div class=\"msg\"><ul>";
 	  foreach ($err as $e) {
-	    echo "<li>".h($e);
+	    echo "<li>".W::h($e);
 	    }
 	  echo "</ul></div>";	
 	   }
@@ -177,13 +157,12 @@ if(W::p('doRegister')== 'Register')
             <td>Your Email<span class="required"><font color="#CC0000">*</font></span> 
             </td>
             <td><input name="usr_email" type="text" id="usr_email3" class="required email" value="<?=W::p('usr_email')?>"> 
-              <span class="example">** Valid email please..</span></td>
           </tr>
           <tr> 
             <td>Password<span class="required"><font color="#CC0000">*</font></span> 
             </td>
             <td><input name="pwd" type="password" class="required password" minlength="5" id="pwd"  value="<?=W::p('pwd')?>"> 
-              <span class="example">** 5 chars minimum..</span></td>
+              <div class="example">** 5 chars minimum</div></td>
           </tr>
           <tr> 
             <td>Retype Password<span class="required"><font color="#CC0000">*</font></span> 

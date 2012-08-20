@@ -25,60 +25,40 @@ class AccountMixin extends Mixin
 
   static function login($user, $location=null)
   {
-    global $__wicked;
-    $config = $__wicked['modules']['account'];
+    $config = W::module('account');
     
-    // this sets variables in the session 
-    $_SESSION['user_id']= $user->id;  
-    $_SESSION['user_name'] = $user->login;
-    $_SESSION['HTTP_USER_AGENT'] = md5($_SERVER['HTTP_USER_AGENT']);
-  
-    //update the timestamp and key for cookie
-    $stamp = time();
-    $ckey = GenKey();
-    $user->ctime = $stamp;
-    $user->ckey = $ckey;
+    $ttl = $config['ttl'];
+    if(W::p('remember'))
+    {
+      $ttl = $config['remember_ttl'];
+    }
+    
+    W::session_set('user_id', $user->id, $ttl);
+    
     if(!$user->is_active)
     {
-      flash_next("Your account has been undeleted. Welcome back!");
+      W::flash_next("Your account has been undeleted. Welcome back!");
     }
     $user->is_active=true;
     $user->save();
     
-    global $current_user;
-    $current_user = $user;
+    self::$current_user = $user;
     
-    //set a cookie 
-    
-    if(isset($_POST['remember']))
-    {
-      setcookie("user_id", $_SESSION['user_id'], time()+60*60*24*COOKIE_TIME_OUT, "/");
-      setcookie("user_key", sha1($ckey), time()+60*60*24*COOKIE_TIME_OUT, "/");
-      setcookie("user_name",$_SESSION['user_name'], time()+60*60*24*COOKIE_TIME_OUT, "/");
-    }
-    event('login', $current_user);
+    W::action('login', $user);
     if($location===null) $location = $config['after_login_url'];
-    if($location) redirect_to($location);
+    if($location) W::redirect_to($location);
   }
   
   
   static function logout()
   {
-    if(!is_logged_in()) return;
-  
-    /************ Delete the sessions****************/
-    unset($_SESSION['user_id']);
-    unset($_SESSION['user_name']);
-    unset($_SESSION['user_level']);
-    unset($_SESSION['HTTP_USER_AGENT']);
+    W::dprint(self::is_logged_in());
+    if(!self::is_logged_in()) return;
     
-    /* Delete the cookies*******************/
-    setcookie("user_id", '', time()-60*60*24*COOKIE_TIME_OUT, "/");
-    setcookie("user_name", '', time()-60*60*24*COOKIE_TIME_OUT, "/");
-    setcookie("user_key", '', time()-60*60*24*COOKIE_TIME_OUT, "/");
+    W::session_delete_all();
     
-    flash_next("You have been logged out.");
-    redirect_to('/');
+    W::flash_next("You have been logged out.");
+    W::redirect_to('/');
   }
   
   
@@ -114,19 +94,90 @@ class AccountMixin extends Mixin
     }
   }
 
-  function activate($id)
+  static function activate($id)
   {
     $u = User::find_by_id($id);
     $u->activated_at = time();
     $u->save();
     W::flash_next("Thank you. Your account has been activated.");
     
-    list($subject,$body) = template('account.welcome');
-    W::swiftmail($u->email, $subject, $body, true);
+    list($subject,$body) = W::template('account.welcome');
+    W::swiftmail_send($u->email, $subject, $body, true);
     
     W::action('account_activated', $u);
     self::login($u);
     W::redirect_to(W::filter('after_activation_url', $config['after_activation_url'], $u));
   }
   
+  static function gen_key($length = 7)
+  {
+    $password = "";
+    $possible = "0123456789abcdefghijkmnopqrstuvwxyz"; 
+    
+    $i = 0; 
+      
+    while ($i < $length) { 
+  
+      
+      $char = substr($possible, mt_rand(0, strlen($possible)-1), 1);
+         
+      
+      if (!strstr($password, $char)) { 
+        $password .= $char;
+        $i++;
+      }
+  
+    }
+  
+    return $password;
+  
+  }
+  
+  
+  
+  static function page_protect($flash='Please log in.',$redirect = null) {
+    if(!self::is_logged_in())
+    {
+      W::flash_next($flash);
+      if(!$redirect) 
+      {
+        $redirect = W::request('path');
+      }
+      W::redirect_to('/account/login', array('r'=>$redirect));
+    }
+  }  
+
+  static function filter($data) {
+  	$data = trim(W::h(strip_tags($data)));
+  
+  	if (get_magic_quotes_gpc())
+  		$data = stripslashes($data);
+  
+  	$data = mysql_real_escape_string($data);
+  
+  	return $data;
+  }    
+  
+  static function isUserID($username)
+  {
+    return preg_match('/^[a-z\d_]{5,20}$/i', $username);
+  }	
+  
+  
+  static function isEmail($email){
+    return preg_match('/^\S+@[\w\d.-]{2,}\.[\w]{2,6}$/iU', $email);
+  }
+  
+  static function checkPwd($x,$y) 
+  {
+    if(empty($x) || empty($y) ) { return false; }
+    if (strlen($x) < 4 || strlen($y) < 4) { return false; }
+    
+    if (strcmp($x,$y) != 0) {
+     return false;
+     } 
+    return true;
+  }
+  
+
 }
