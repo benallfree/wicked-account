@@ -52,7 +52,6 @@ class AccountMixin extends Mixin
   
   static function logout()
   {
-    W::dprint(self::is_logged_in());
     if(!self::is_logged_in()) return;
     
     W::session_delete_all();
